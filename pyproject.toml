@@ -1,0 +1,17 @@
+[project]
+name = "ahcb-prototype"
+version = "0.1.0"
+description = "AHCB-0: an autonomous self-pruning cognitive cube prototype."
+requires-python = ">=3.10"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Hristos Nenkov" }]
+dependencies = []
+
+[project.scripts]
+ahcb-demo = "run_demo:main"
+ahcb-simulate = "simulate:main"
+
+[tool.ruff]
+line-length = 100
+
