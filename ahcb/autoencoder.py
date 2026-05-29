@@ -80,3 +80,24 @@ class OnlineSparseAutoencoder:
 
         return SparseCode(code=code, reconstruction=rec, loss=loss, active=active)
 
+    def to_dict(self) -> dict:
+        return {
+            "input_size": self.input_size,
+            "code_size": self.code_size,
+            "k": self.k,
+            "lr": self.lr,
+            "encoder": self.encoder,
+            "decoder": self.decoder,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "OnlineSparseAutoencoder":
+        obj = cls(
+            input_size=int(data.get("input_size", 96)),
+            code_size=int(data.get("code_size", 32)),
+            k=int(data.get("k", 6)),
+            lr=float(data.get("lr", 0.035)),
+        )
+        obj.encoder = [[float(x) for x in row] for row in data.get("encoder", obj.encoder)]
+        obj.decoder = [[float(x) for x in row] for row in data.get("decoder", obj.decoder)]
+        return obj

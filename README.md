@@ -21,12 +21,40 @@ Run:
 python run_demo.py
 python tests.py
 python simulate.py --steps 80
+python benchmark.py
+python train.py --steps 5000
 ```
 
 The first useful question is not "is this intelligent yet?" It is:
 
 > Can a small autonomous system learn a non-static world, compress experience,
 > prune memory, and improve simple prediction/retrieval without cloud compute?
+
+## Development Lab
+
+Run benchmarks against random and reflex baselines:
+
+```bash
+python benchmark.py --levels 4 --seeds 5 --steps 220 --train-steps 700
+```
+
+Run autonomous local training:
+
+```bash
+python train.py --steps 5000 --chunk 500 --save runs/ahcb_brain.json
+```
+
+For an overnight run, increase the step count:
+
+```bash
+python train.py --steps 100000 --chunk 1000 --save runs/ahcb_brain.json
+```
+
+Interact with the sandbox:
+
+```bash
+python interact.py
+```
 
 ## Visual Simulation
 
@@ -42,4 +70,3 @@ Legend:
 - `#` = obstacle
 - `!` = hazard
 - `+` = boundary
-

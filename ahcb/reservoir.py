@@ -56,3 +56,27 @@ class EchoStateReservoir:
         self.state = nxt
         return list(self.state)
 
+    def to_dict(self) -> dict:
+        return {
+            "input_size": self.input_size,
+            "size": self.size,
+            "leak": self.leak,
+            "state": self.state,
+            "win": self.win,
+            "recurrent": self.recurrent,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "EchoStateReservoir":
+        obj = cls(
+            input_size=int(data.get("input_size", 39)),
+            size=int(data.get("size", 96)),
+            leak=float(data.get("leak", 0.45)),
+        )
+        obj.state = [float(x) for x in data.get("state", obj.state)]
+        obj.win = [[float(x) for x in row] for row in data.get("win", obj.win)]
+        obj.recurrent = [
+            [(int(j), float(w)) for j, w in row]
+            for row in data.get("recurrent", obj.recurrent)
+        ]
+        return obj

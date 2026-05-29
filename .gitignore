@@ -9,4 +9,6 @@ dist/
 build/
 *.egg-info/
 simulation_*.txt
-
+runs/
+*.brain.json
+ahcb_brain.json

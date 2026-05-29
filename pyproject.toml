@@ -11,7 +11,9 @@ dependencies = []
 [project.scripts]
 ahcb-demo = "run_demo:main"
 ahcb-simulate = "simulate:main"
+ahcb-benchmark = "benchmark:main"
+ahcb-train = "train:main"
+ahcb-interact = "interact:main"
 
 [tool.ruff]
 line-length = 100
-

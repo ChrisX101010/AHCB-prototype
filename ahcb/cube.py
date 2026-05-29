@@ -30,6 +30,31 @@ class CubeCell:
         self.confidence = min(1.0, self.confidence + 0.04)
         self.labels[label] = self.labels.get(label, 0) + 1
 
+    def to_dict(self) -> Dict[str, object]:
+        return {
+            "vector": self.vector,
+            "salience": self.salience,
+            "confidence": self.confidence,
+            "utility": self.utility,
+            "visits": self.visits,
+            "age": self.age,
+            "last_seen": self.last_seen,
+            "labels": self.labels,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, object]) -> "CubeCell":
+        return cls(
+            vector=[float(x) for x in data.get("vector", [])],
+            salience=float(data.get("salience", 0.0)),
+            confidence=float(data.get("confidence", 0.0)),
+            utility=float(data.get("utility", 0.0)),
+            visits=int(data.get("visits", 0)),
+            age=int(data.get("age", 0)),
+            last_seen=int(data.get("last_seen", 0)),
+            labels={str(k): int(v) for k, v in dict(data.get("labels", {})).items()},
+        )
+
 
 class CognitiveCube:
     """3D memory: region x modality x abstraction level."""
@@ -204,3 +229,49 @@ class CognitiveCube:
             "center_energy": sum(abs(x) for x in self.center),
         }
 
+    def to_dict(self) -> Dict[str, object]:
+        return {
+            "regions": self.regions,
+            "modalities": self.modalities,
+            "levels": self.levels,
+            "feature_size": self.feature_size,
+            "cells": {"|".join(map(str, addr)): cell.to_dict() for addr, cell in self.cells.items()},
+            "links": {
+                "|".join(map(str, a + b)): weight
+                for (a, b), weight in self.links.items()
+            },
+            "center": self.center,
+            "tick": self.tick,
+            "last_address": list(self.last_address) if self.last_address is not None else None,
+            "pruned_cells": self.pruned_cells,
+            "pruned_links": self.pruned_links,
+            "consolidations": self.consolidations,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, object]) -> "CognitiveCube":
+        cube = cls(
+            regions=int(data.get("regions", 6)),
+            modalities=int(data.get("modalities", 3)),
+            levels=int(data.get("levels", 4)),
+            feature_size=int(data.get("feature_size", 32)),
+        )
+        cells = dict(data.get("cells", {}))
+        for key, cell_data in cells.items():
+            addr = tuple(int(x) for x in key.split("|"))
+            if len(addr) == 3:
+                cube.cells[addr] = CubeCell.from_dict(dict(cell_data))
+        links = dict(data.get("links", {}))
+        for key, weight in links.items():
+            parts = [int(x) for x in key.split("|")]
+            if len(parts) == 6:
+                cube.links[((parts[0], parts[1], parts[2]), (parts[3], parts[4], parts[5]))] = float(weight)
+        cube.center = [float(x) for x in data.get("center", zeros(cube.feature_size))]
+        cube.tick = int(data.get("tick", 0))
+        last = data.get("last_address")
+        if isinstance(last, list) and len(last) == 3:
+            cube.last_address = (int(last[0]), int(last[1]), int(last[2]))
+        cube.pruned_cells = int(data.get("pruned_cells", 0))
+        cube.pruned_links = int(data.get("pruned_links", 0))
+        cube.consolidations = int(data.get("consolidations", 0))
+        return cube

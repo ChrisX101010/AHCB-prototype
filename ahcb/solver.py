@@ -73,6 +73,38 @@ class CubeSolver:
             self.cache[sig] = move.name
         return move
 
+    def to_dict(self) -> dict:
+        return {
+            "cache": {"|".join(map(str, k)): v for k, v in self.cache.items()},
+            "history": [
+                {
+                    "name": m.name,
+                    "score_before": m.score_before,
+                    "score_after": m.score_after,
+                    "changed": m.changed,
+                }
+                for m in self.history[-500:]
+            ],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "CubeSolver":
+        obj = cls()
+        obj.cache = {
+            tuple(int(x) for x in key.split("|")): str(value)
+            for key, value in dict(data.get("cache", {})).items()
+        }
+        obj.history = [
+            SolverMove(
+                name=str(m.get("name", "?")),
+                score_before=float(m.get("score_before", 0.0)),
+                score_after=float(m.get("score_after", 0.0)),
+                changed=int(m.get("changed", 0)),
+            )
+            for m in data.get("history", [])
+        ]
+        return obj
+
     def _estimate_move(self, cube: CognitiveCube, name: str) -> float:
         if name == "lift":
             return sum(1.0 for (_r, _m, l), c in cube.cells.items() if l == 0 and c.visits >= 2)
@@ -96,4 +128,3 @@ class CubeSolver:
         if name.startswith("rotate:"):
             return cube.rotate_region(int(name.split(":", 1)[1]))
         return 0
-

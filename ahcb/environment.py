@@ -33,10 +33,24 @@ class DynamicSandboxWorld:
     ]
     ACTION_NAMES = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "STAY"]
 
-    def __init__(self, width: int = 9, height: int = 9, seed: int = 7):
+    def __init__(
+        self,
+        width: int = 9,
+        height: int = 9,
+        seed: int = 7,
+        obstacle_count: int = 12,
+        hazard_count: int = 5,
+        drift_interval: int = 7,
+        drift_chance: float = 0.35,
+    ):
         self.width = width
         self.height = height
         self.rng = random.Random(seed)
+        self.seed = seed
+        self.obstacle_count = obstacle_count
+        self.hazard_count = hazard_count
+        self.drift_interval = drift_interval
+        self.drift_chance = drift_chance
         self.tick = 0
         self.last_reward = 0.0
         self.agent: Pos = (1, 1)
@@ -59,11 +73,11 @@ class DynamicSandboxWorld:
         self.obstacles = set()
         self.hazards = set()
 
-        while len(self.obstacles) < 12:
+        while len(self.obstacles) < self.obstacle_count:
             p = self._random_empty()
             if p not in (self.agent, self.goal):
                 self.obstacles.add(p)
-        while len(self.hazards) < 5:
+        while len(self.hazards) < self.hazard_count:
             p = self._random_empty()
             if p not in (self.agent, self.goal):
                 self.hazards.add(p)
@@ -187,11 +201,11 @@ class DynamicSandboxWorld:
         return abs(self.goal[0] - pos[0]) + abs(self.goal[1] - pos[1])
 
     def _drift_world(self) -> None:
-        if self.tick % 7 != 0:
+        if self.drift_interval <= 0 or self.tick % self.drift_interval != 0:
             return
         new_obstacles: Set[Pos] = set()
         for p in self.obstacles:
-            if self.rng.random() < 0.35:
+            if self.rng.random() < self.drift_chance:
                 dx, dy = self.rng.choice(self.ACTIONS[:8])
                 q = (p[0] + dx, p[1] + dy)
                 if self._inside(q[0], q[1]) and q not in self.hazards and q != self.agent and q != self.goal:
@@ -202,7 +216,7 @@ class DynamicSandboxWorld:
                 new_obstacles.add(p)
         self.obstacles = new_obstacles
 
-        if self.tick % 21 == 0 and self.hazards:
+        if self.tick % max(1, self.drift_interval * 3) == 0 and self.hazards:
             self.hazards.pop()
             self.hazards.add(self._random_empty())
 
